@@ -33,21 +33,6 @@ def vector_to_picture(data):
     data = np.array(data).real
     new_im = Image.fromarray(data)   # 把数据重新组织变成图像
     new_im.show() # 显示图片
-'''
-def img_to_matrix(img_name):
-    im = Image.open(img_name)
-    # im.show()
-    width, height = im.size
-    # print("图片的宽和高是：", width, height)
-    im = im.convert("L")
-    data = im.getdata()
-    # data = np.matrix(data)  # 把读取到的图像的数据变成矩阵
-    data = np.matrix(data, dtype='float') / 255.0
-    print(data)
-    new_data = np.reshape(data, (height, width))  # 把读取的信息变成数组的形式
-    print(new_data)
-    return new_data
-'''
 
 def get_label():
     f1=open("train-labels.idx1-ubyte",'rb')
@@ -60,8 +45,11 @@ def get_label():
     labs=struct.unpack_from('>'+str(num)+'B',buf1,index)
     return labs #返回训练标签。之前没有单独解析出来保存在文本文件中，因为解析标签比较简单。
 
-
-def getImages():  # 处理训练图片
+def getImages():
+    '''
+    从训练集读取图片的矩阵信息
+    :return:
+    '''
     images_path = "train-images.idx3-ubyte"
     with open(images_path, 'rb') as imgpath:
         magic, num, rows, cols = struct.unpack('>IIII',
@@ -70,52 +58,31 @@ def getImages():  # 处理训练图片
                              dtype=np.uint8).reshape(len(labels), 784)
     return images
 
-def PSNR_test(images,pri_data):
+def SNR_test(images,pri_data):
     print("计算SNR")
     row,col = np.array(images).shape
     print(row,col)
-    sum =0
-
     up = 0
     down = 0
     pri_data = np.array(pri_data).real
     images = np.array(images).real
-    for i in range(10):
-        for j in range(10):
-            print(pri_data[i,j])
+    for i in range(1000):
+        for j in range(500):
             up += np.power(pri_data[i,j],2)
             down += np.power((pri_data[i,j]-images[i,j]),2)
-    '''
-    for i in range(500):
-        for j in range(col):
-            sum += (images[i][j]-pri_data[i][j])**2
-            print(sum)
-
-    print("end")
-    a = np.sum((images-pri_data))/784
-    P = 10*np.log10(255**2/a)
-    print(np.array(P).real)
-    '''
-    
     SNR = 10*np.log10(up/down)
     print(SNR)
 
 if __name__ == '__main__':
-    k = 8
     path = "data"
     labels = get_label()
-    # print(labels)
     images = getImages()  # 获取数据
     print(len(images[0]))
-    # print(images)
     # 已经读取完毕
-    low_data, pri_data = PCA(images,2)
-    # print(len(pri_data[0])) #784
-    # print(test)
-    # vector_to_picture(pri_data[0])
+    low_data, pri_data = PCA(images,30)
     print(images)
     print(len(pri_data[0]))
     print(np.shape(pri_data))
-    vector_to_picture(pri_data[0])
-    PSNR_test(images,pri_data)
+    vector_to_picture(pri_data[1])
+    SNR_test(images,pri_data)
 
